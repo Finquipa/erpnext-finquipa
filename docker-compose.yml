@@ -1,0 +1,55 @@
+version: '3.7'
+
+services:
+  db:
+    image: mariadb:10.3
+    environment:
+      - MYSQL_ROOT_PASSWORD=admin
+      - MYSQL_DATABASE=erpnext
+      - MYSQL_USER=erpnext
+      - MYSQL_PASSWORD=password
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - erpnext-net
+
+  redis-cache:
+    image: redis:latest
+    volumes:
+      - redis-cache-data:/data
+    networks:
+      - erpnext-net
+
+  redis-queue:
+    image: redis:latest
+    volumes:
+      - redis-queue-data:/data
+    networks:
+      - erpnext-net
+
+  redis-socketio:
+    image: redis:latest
+    volumes:
+      - redis-socketio-data:/data
+    networks:
+      - erpnext-net
+
+  backend:
+    image: frappe/erpnext-worker:edge
+    environment:
+      - MARIADB_HOST=db
+      - REDIS_CACHE=redis-cache:6379
+      - REDIS_QUEUE=redis-queue:6379
+      - REDIS_SOCKETIO=redis-socketio:6379
+      - SITE_NAME=erp.mysite.local
+    networks:
+      - erpnext-net
+
+networks:
+  erpnext-net:
+
+volumes:
+  dbdata:
+  redis-cache-data:
+  redis-queue-data:
+  redis-socketio-data:
